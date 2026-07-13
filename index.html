@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Solarix AI — 태양광 발전량 예측 &amp; 스마트 전력 관리 에이전트</title>
-<meta name="description" content="Solarix AI는 기상 데이터와 실측 발전량을 학습해 최대 7일 태양광 발전량을 예측하고, 부족 상황을 조기에 감지해 스마트 전력 관리를 제안하는 AI 에이전트입니다.">
+<title>Solarix AI — 관리자 대시보드</title>
+<meta name="description" content="Solarix AI 관리자 대시보드 — 최대 7일 태양광 발전량 예측을 작년 실측치와 비교하고, 부족 상황을 조기에 감지해 스마트 전력 관리를 제안합니다.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='14' fill='%23f4a300'/%3E%3Cg stroke='%23f4a300' stroke-width='4' stroke-linecap='round'%3E%3Cline x1='32' y1='4' x2='32' y2='12'/%3E%3Cline x1='32' y1='52' x2='32' y2='60'/%3E%3Cline x1='4' y1='32' x2='12' y2='32'/%3E%3Cline x1='52' y1='32' x2='60' y2='32'/%3E%3Cline x1='12.4' y1='12.4' x2='18' y2='18'/%3E%3Cline x1='46' y1='46' x2='51.6' y2='51.6'/%3E%3Cline x1='51.6' y1='12.4' x2='46' y2='18'/%3E%3Cline x1='18' y1='46' x2='12.4' y2='51.6'/%3E%3C/g%3E%3C/svg%3E">
 <style>
 :root {
@@ -16,1253 +16,795 @@
   --sky-700: #16304f;
   --sky-600: #1d3f66;
   --ink: #0b1930;
-  --paper: #fbf9f4;
-  --paper-2: #f2ede1;
-  --line: #e5ddc8;
+  --paper: #f5f6f8;
+  --panel: #ffffff;
+  --line: #e4e7ee;
   --muted: #6b7280;
   --good: #2f9e6e;
+  --good-bg: rgba(47, 158, 110, 0.12);
   --bad: #d1495b;
+  --bad-bg: rgba(209, 73, 91, 0.12);
   --radius: 16px;
-  --shadow: 0 8px 30px rgba(11, 25, 48, 0.08);
-  --shadow-lg: 0 20px 60px rgba(11, 25, 48, 0.16);
-  --maxw: 1120px;
+  --shadow: 0 8px 24px rgba(11, 25, 48, 0.06);
 }
 
 * { box-sizing: border-box; }
-
-html {
-  scroll-behavior: smooth;
-}
 
 body {
   margin: 0;
   font-family: "Pretendard", "Apple SD Gothic Neo", "Segoe UI", "Malgun Gothic", sans-serif;
   background: var(--paper);
   color: var(--ink);
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-img, svg { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
 
-.wrap {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 0 24px;
+/* ---------- Shell ---------- */
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
 }
 
-a { color: inherit; }
-
-/* ---------- Nav ---------- */
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(251, 249, 244, 0.85);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-}
-
-.nav .wrap {
+/* ---------- Sidebar ---------- */
+.sidebar {
+  background: linear-gradient(180deg, var(--sky-900), var(--sky-800));
+  color: #fff;
+  padding: 24px 16px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 68px;
+  flex-direction: column;
+  gap: 28px;
 }
 
-.brand {
+.sidebar .brand {
   display: flex;
   align-items: center;
   gap: 10px;
   font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
-  text-decoration: none;
+  font-size: 1.05rem;
+  padding: 0 8px;
 }
 
 .brand-mark {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, var(--sun-300), var(--sun-500));
   box-shadow: 0 0 0 4px rgba(244, 163, 0, 0.15);
   flex-shrink: 0;
 }
 
-.nav-links {
-  display: flex;
-  gap: 28px;
+.side-nav {
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-.nav-links a {
-  text-decoration: none;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--muted);
-  padding: 6px 2px;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.nav-links a:hover,
-.nav-links a.active {
-  color: var(--ink);
-  border-color: var(--sun-500);
-}
-
-.nav-toggle {
-  display: none;
-  background: none;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-}
-.nav-toggle span,
-.nav-toggle::before,
-.nav-toggle::after {
-  content: "";
-  display: block;
-  width: 18px;
-  height: 2px;
-  background: var(--ink);
-  margin: 4px auto;
-}
-
-/* ---------- Hero ---------- */
-.hero {
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(1000px 500px at 85% -10%, rgba(255, 209, 102, 0.35), transparent 60%),
-    radial-gradient(800px 400px at 10% 0%, rgba(29, 63, 102, 0.15), transparent 60%),
-    linear-gradient(180deg, var(--sky-900), var(--sky-800) 60%, var(--paper) 100%);
-  color: #fff;
-  padding: 120px 0 90px;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 209, 102, 0.35);
-  color: var(--sun-300);
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.hero h1 {
-  font-size: clamp(2.1rem, 4.5vw, 3.4rem);
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  margin: 22px 0 18px;
-  max-width: 780px;
-}
-
-.hero h1 em {
-  font-style: normal;
-  background: linear-gradient(90deg, var(--sun-300), var(--sun-500));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.hero p.lead {
-  max-width: 640px;
-  font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.78);
-  margin-bottom: 34px;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 56px;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 13px 22px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  text-decoration: none;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-.btn:hover { transform: translateY(-1px); }
-
-.btn-primary {
-  background: linear-gradient(90deg, var(--sun-400), var(--sun-500));
-  color: var(--sky-900);
-  box-shadow: 0 10px 30px rgba(244, 163, 0, 0.35);
-}
-
-.btn-ghost {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #fff;
-}
-
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.hero-stat {
-  background: rgba(11, 25, 48, 0.35);
-  padding: 22px 18px;
-  text-align: left;
-}
-
-.hero-stat .num {
-  font-size: 1.7rem;
-  font-weight: 800;
-  color: var(--sun-300);
-  letter-spacing: -0.02em;
-}
-
-.hero-stat .label {
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.65);
-  margin-top: 4px;
-}
-
-/* ---------- Sections ---------- */
-section { padding: 90px 0; }
-section.tight { padding: 70px 0; }
-
-.section-head {
-  max-width: 680px;
-  margin-bottom: 48px;
-}
-
-.kicker {
-  display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--sun-500);
-  margin-bottom: 12px;
-}
-
-.section-head h2 {
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  letter-spacing: -0.02em;
-  margin: 0 0 14px;
-}
-
-.section-head p {
-  color: var(--muted);
-  font-size: 1rem;
-  margin: 0;
-}
-
-.alt-bg { background: var(--paper-2); }
-
-/* fade-in on scroll */
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.reveal.in {
-  opacity: 1;
-  transform: none;
-}
-
-/* ---------- Cards / Grids ---------- */
-.grid {
-  display: grid;
-  gap: 20px;
-}
-.grid-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-4 { grid-template-columns: repeat(4, 1fr); }
-
-.card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 26px;
-  box-shadow: var(--shadow);
-}
-
-.card .icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--sun-300), var(--sun-500));
-  color: var(--sky-900);
-  margin-bottom: 16px;
-  font-size: 1.3rem;
-}
-
-.card h3 {
-  margin: 0 0 8px;
-  font-size: 1.08rem;
-  letter-spacing: -0.01em;
-}
-
-.card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
-.tag {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(244, 163, 0, 0.12);
-  color: #a5680a;
-  margin-bottom: 10px;
-}
-
-/* ---------- Table ---------- */
-.table-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: #fff;
-  box-shadow: var(--shadow);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.92rem;
-  min-width: 560px;
-}
-
-th, td {
-  text-align: left;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--line);
-  vertical-align: top;
-}
-
-thead th {
-  background: var(--paper-2);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-
-tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: rgba(244, 163, 0, 0.05); }
-
-td strong, th strong { color: var(--ink); }
-
-/* ---------- Flow diagram ---------- */
-.flow {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 14px;
-}
-
-.flow-step {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 20px 16px;
-  position: relative;
-  box-shadow: var(--shadow);
-}
-
-.flow-step .n {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--sky-900);
-  color: var(--sun-300);
-  font-weight: 800;
-  font-size: 0.82rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.flow-step h4 {
-  margin: 0 0 6px;
-  font-size: 0.94rem;
-}
-
-.flow-step p {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.flow-branch {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.flow-branch .flow-step.branch-ok { border-color: rgba(47, 158, 110, 0.35); }
-.flow-branch .flow-step.branch-alert { border-color: rgba(209, 73, 91, 0.35); }
-
-.flow-branch .flow-step.branch-ok .n { background: var(--good); color: #fff; }
-.flow-branch .flow-step.branch-alert .n { background: var(--bad); color: #fff; }
-
-/* ---------- Comparison ---------- */
-.compare {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.compare .card.old { border-color: rgba(209, 73, 91, 0.3); }
-.compare .card.new { border-color: rgba(47, 158, 110, 0.35); background: linear-gradient(180deg, #fff, #fbfff9); }
-
-.compare h3 { display: flex; align-items: center; gap: 8px; }
-.pill {
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 3px 9px;
-  border-radius: 999px;
-}
-.pill.bad { background: rgba(209, 73, 91, 0.12); color: var(--bad); }
-.pill.good { background: rgba(47, 158, 110, 0.12); color: var(--good); }
-
-.compare ul {
-  margin: 14px 0 0;
-  padding-left: 18px;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-.compare li { margin-bottom: 6px; }
-
-/* ---------- Bars (feature correlation) ---------- */
-.bar-list { display: flex; flex-direction: column; gap: 14px; }
-
-.bar-row {
-  display: grid;
-  grid-template-columns: 140px 1fr 60px;
-  align-items: center;
-  gap: 14px;
-  font-size: 0.88rem;
-}
-
-.bar-row .name { font-weight: 700; color: var(--ink); }
-.bar-row .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.78rem; }
-
-.bar-track {
-  height: 10px;
-  background: var(--paper-2);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--sun-400), var(--sun-500));
-  width: 0%;
-  transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.bar-fill.neg {
-  background: linear-gradient(90deg, #7f9cba, var(--sky-600));
-}
-
-.bar-val { text-align: right; font-weight: 700; color: var(--ink); }
-
-/* ---------- Split timeline ---------- */
-.split-bar {
-  display: flex;
-  height: 54px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-}
-.split-seg {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+}
+
+.side-nav a, .side-nav .disabled {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+}
+
+.side-nav .disabled { cursor: default; }
+
+.side-nav a:hover {
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
+}
+
+.side-nav a.active {
+  background: rgba(244, 163, 0, 0.16);
+  color: var(--sun-300);
+}
+
+.side-nav .soon {
+  margin-left: auto;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.sidebar .plant-card {
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+.sidebar .plant-card strong { display: block; color: #fff; font-size: 0.9rem; margin-bottom: 4px; }
+
+/* ---------- Topbar ---------- */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.topbar h1 {
+  font-size: 1.25rem;
+  margin: 0 0 2px;
+  letter-spacing: -0.01em;
+}
+.topbar .sub { font-size: 0.85rem; color: var(--muted); }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.clock {
   font-size: 0.82rem;
+  color: var(--muted);
+  text-align: right;
+}
+.clock strong { display: block; color: var(--ink); font-size: 0.92rem; }
+
+.about-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.about-link:hover { border-color: var(--sun-500); color: var(--sun-500); }
+
+.avatar-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
   font-weight: 700;
 }
-.split-seg.train { background: var(--sky-800); width: 75%; }
-.split-seg.val { background: #4d7aa8; width: 10%; }
-.split-seg.test { background: var(--sun-500); width: 15%; color: var(--sky-900); }
-.split-legend {
+.avatar-chip .dot {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--sky-700), var(--sky-900));
+  color: var(--sun-300);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+}
+
+/* ---------- Content ---------- */
+.content {
+  padding: 28px 32px 60px;
   display: flex;
-  gap: 24px;
-  margin-top: 14px;
-  font-size: 0.85rem;
-  color: var(--muted);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 22px;
 }
-.split-legend span { display: inline-flex; align-items: center; gap: 8px; }
-.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
-/* ---------- Model cards ---------- */
-.model-card .role {
-  font-size: 0.76rem;
+.section-title {
+  font-size: 0.78rem;
   font-weight: 800;
-  color: var(--sun-500);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 6px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 12px;
 }
-.model-card .pros-cons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+
+/* Day picker */
+.day-picker {
+  display: flex;
   gap: 10px;
-  margin-top: 14px;
-  font-size: 0.82rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
-.model-card .pros-cons div strong { display: block; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 
-/* ---------- Risk list ---------- */
-.risk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.risk-list li {
-  background: #fff;
+.day-pill {
+  flex: 1;
+  min-width: 110px;
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--sun-500);
-  border-radius: 10px;
-  padding: 16px 20px;
-  font-size: 0.92rem;
-  color: var(--ink);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
   box-shadow: var(--shadow);
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.risk-list li span { color: var(--muted); }
+.day-pill:hover { transform: translateY(-1px); }
+.day-pill .d-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+.day-pill .d-date { font-size: 0.98rem; font-weight: 800; margin-top: 2px; }
+.day-pill .d-badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.day-pill.selected { border-color: var(--sun-500); box-shadow: 0 0 0 3px rgba(244,163,0,0.15); }
+.d-badge.ok { background: var(--good-bg); color: var(--good); }
+.d-badge.warn { background: var(--bad-bg); color: var(--bad); }
 
-/* ---------- Team ---------- */
-.team-grid {
+/* KPI cards */
+.kpi-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-.team-card {
-  text-align: center;
-  padding: 30px 18px;
-}
-.avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  margin: 0 auto 14px;
-  background: linear-gradient(135deg, var(--sky-700), var(--sky-900));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sun-300);
-  font-weight: 800;
-  font-size: 1.1rem;
-}
-.team-card h3 { font-size: 1rem; margin-bottom: 4px; }
-.team-card p { font-size: 0.8rem; }
-
-/* ---------- References ---------- */
-.ref-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 12px;
-}
-.ref-list li {
-  font-size: 0.88rem;
-  color: var(--muted);
-  padding: 14px 18px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-
-/* ---------- Footer ---------- */
-footer {
-  background: var(--sky-900);
-  color: rgba(255, 255, 255, 0.7);
-  padding: 44px 0 30px;
-  font-size: 0.85rem;
-}
-footer .wrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 16px;
 }
-footer .brand { color: #fff; }
-footer .foot-meta { text-align: right; }
+.kpi-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+}
+.kpi-card .label { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+.kpi-card .value { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; }
+.kpi-card .value small { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
+.kpi-card .delta { margin-top: 8px; font-size: 0.85rem; font-weight: 700; }
+.delta.up { color: var(--good); }
+.delta.down { color: var(--bad); }
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+.status-pill.ok { background: var(--good-bg); color: var(--good); }
+.status-pill.warn { background: var(--bad-bg); color: var(--bad); }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 960px) {
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .grid-3 { grid-template-columns: repeat(2, 1fr); }
-  .flow { grid-template-columns: repeat(3, 1fr); }
-  .flow-branch { grid-template-columns: 1fr; }
-  .team-grid { grid-template-columns: repeat(2, 1fr); }
-  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+/* Chart card */
+.chart-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px 24px 12px;
+  box-shadow: var(--shadow);
+}
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.chart-head h2 { font-size: 1.05rem; margin: 0; }
+.chart-head p { margin: 4px 0 0; font-size: 0.85rem; color: var(--muted); }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.chart-svg-wrap { width: 100%; overflow-x: auto; }
+.chart-svg-wrap svg { width: 100%; height: auto; min-width: 560px; display: block; }
+
+/* Bottom grid */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+.panel h3 { margin: 0 0 14px; font-size: 0.98rem; }
+
+/* mini overview bars */
+.mini-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 130px;
+}
+.mini-bar-col {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 100%;
+  cursor: pointer;
+  border-radius: 8px;
+  padding-top: 6px;
+}
+.mini-bar-col.selected { background: rgba(244, 163, 0, 0.08); }
+.mini-bar { width: 9px; border-radius: 3px 3px 0 0; background: var(--sky-700); align-self: flex-end; }
+.mini-bar.forecast { background: linear-gradient(180deg, var(--sun-400), var(--sun-500)); }
+.mini-bars-labels {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.mini-bars-labels span {
+  flex: 1;
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-weight: 600;
 }
 
-@media (max-width: 720px) {
-  .nav-links {
-    position: absolute;
-    top: 68px; left: 0; right: 0;
-    background: var(--paper);
-    flex-direction: column;
-    padding: 16px 24px 24px;
-    border-bottom: 1px solid var(--line);
-    display: none;
-    gap: 16px;
+/* weather mini stats */
+.weather-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.weather-item .w-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+.weather-item .w-value { font-size: 1.15rem; font-weight: 800; }
+
+/* advice panel */
+.advice-panel.warn { border-color: rgba(209, 73, 91, 0.35); background: linear-gradient(180deg, #fff, #fff7f7); }
+.advice-panel.ok { border-color: rgba(47, 158, 110, 0.3); }
+.advice-panel ul { margin: 0; padding-left: 18px; font-size: 0.86rem; color: var(--ink); }
+.advice-panel li { margin-bottom: 10px; }
+.advice-panel .ok-msg { font-size: 0.88rem; color: var(--muted); }
+
+footer.dash-footer {
+  padding: 18px 32px 28px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .bottom-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar {
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    gap: 14px;
+    padding: 14px 16px;
   }
-  .nav-links.open { display: flex; }
-  .nav-toggle { display: block; }
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  .flow { grid-template-columns: 1fr; }
-  .compare { grid-template-columns: 1fr; }
-  .bar-row { grid-template-columns: 100px 1fr 46px; }
-  section { padding: 60px 0; }
-  .hero { padding: 100px 0 60px; }
-  footer .wrap { flex-direction: column; align-items: flex-start; text-align: left; }
-  footer .foot-meta { text-align: left; }
+  .sidebar .plant-card { display: none; }
+  .side-nav { flex-direction: row; }
+  .side-nav .soon { display: none; }
+  .content { padding: 20px 16px 40px; }
+  .topbar { padding: 16px; }
+}
+
+@media (max-width: 560px) {
+  .kpi-row { grid-template-columns: 1fr; }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #0e1524;
-    --paper-2: #131b2c;
+    --paper: #0b1220;
+    --panel: #111a2b;
     --line: #223049;
     --ink: #f1f4f9;
     --muted: #9aa7bc;
-    --shadow: 0 8px 30px rgba(0,0,0,0.35);
+    --shadow: 0 8px 24px rgba(0,0,0,0.35);
   }
-  .card, .table-wrap, .flow-step, .risk-list li, .ref-list li { background: #101a2d; }
-  thead th { background: #16223a; }
-  .compare .card.new { background: linear-gradient(180deg, #101a2d, #0f1c17); }
-  .nav { background: rgba(14, 21, 36, 0.85); }
-  .nav-links { background: var(--paper); }
+  .about-link { border-color: var(--line); }
 }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="wrap">
-    <a href="#top" class="brand"><span class="brand-mark"></span>Solarix AI</a>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#overview">개요</a></li>
-      <li><a href="#problem">문제정의</a></li>
-      <li><a href="#features">핵심기능</a></li>
-      <li><a href="#novelty">차별점</a></li>
-      <li><a href="#data">데이터</a></li>
-      <li><a href="#modeling">모델링</a></li>
-      <li><a href="#team">팀</a></li>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark"></span>Solarix AI</div>
+    <ul class="side-nav">
+      <li><a href="index.html" class="active">📊 대시보드</a></li>
+      <li><span class="disabled">📅 7일 예측 로그<span class="soon">준비중</span></span></li>
+      <li><span class="disabled">🚨 이상 감지 로그<span class="soon">준비중</span></span></li>
+      <li><span class="disabled">🏭 발전소 관리<span class="soon">준비중</span></span></li>
+      <li><span class="disabled">📄 리포트<span class="soon">준비중</span></span></li>
+      <li><span class="disabled">⚙️ 설정<span class="soon">준비중</span></span></li>
+      <li><a href="about.html">ℹ️ 프로젝트 소개</a></li>
     </ul>
-    <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기"><span></span></button>
-  </div>
-</nav>
+    <div class="plant-card">
+      <strong>당진 태양광 발전소</strong>
+      발전기 3대 · 총 2.7MW<br>
+      37.05075°N, 126.5103°E
+    </div>
+  </aside>
 
-<header class="hero" id="top">
-  <div class="wrap">
-    <span class="eyebrow">☀ 2026 Agentic AI Innovation Challenge</span>
-    <h1>태양광 발전량, <em>7일 앞</em>을 내다보는 AI 에이전트</h1>
-    <p class="lead">
-      한국동서발전(주) 당진 태양광 발전소의 실측 발전량과 Open-Meteo 기상 데이터를 학습해
-      최대 7일 발전량을 예측하고, 예측·실측 비교로 부족 상황을 조기에 감지해
-      실행 가능한(actionable) 스마트 전력 관리 방안을 제안합니다.
-    </p>
-    <div class="hero-actions">
-      <a href="#features" class="btn btn-primary">핵심 기능 보기</a>
-      <a href="#modeling" class="btn btn-ghost">모델링 방법론 보기</a>
-    </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><div class="num" data-count="7">0</div><div class="label">Day-Ahead 예측 지평</div></div>
-      <div class="hero-stat"><div class="num" data-count="32904">0</div><div class="label">학습 대상 시간 수 (행)</div></div>
-      <div class="hero-stat"><div class="num" data-count="99" data-suffix=".18%">0</div><div class="label">결측 제거 후 사용 가능 비율</div></div>
-      <div class="hero-stat"><div class="num" data-count="3">0</div><div class="label">비교 검증된 후보 모델</div></div>
-    </div>
-  </div>
-</header>
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>발전량 예측 대시보드</h1>
+        <div class="sub">최대 7일 예측 vs 작년 동일 날짜 실측 비교</div>
+      </div>
+      <div class="topbar-right">
+        <div class="clock"><strong id="clockTime">--:--:--</strong><span id="clockDate">----년 --월 --일</span></div>
+        <a href="about.html" class="about-link">프로젝트 소개</a>
+        <div class="avatar-chip"><span class="dot">관</span>관리자</div>
+      </div>
+    </header>
 
-<!-- ===================== OVERVIEW ===================== -->
-<section id="overview">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Overview</span>
-      <h2>예측을 넘어, 실행 가능한 전력 관리까지</h2>
-      <p>
-        Solarix AI는 단순 발전량 예측 서비스가 아닙니다. 예측치와 실측치를 지속적으로 비교해
-        이상·부족 상황을 조기에 파악하고, 상황에 맞는 절전·에너지 사용 최적화 방안까지 제안하는
-        <strong>예측(Forecasting) + 관리 조언(Management Advice) 결합형 AI 에이전트</strong>입니다.
-      </p>
-    </div>
+    <div class="content">
+      <section>
+        <p class="section-title">예측 일자 선택 (최대 7일)</p>
+        <div class="day-picker" id="dayPicker"></div>
+      </section>
 
-    <div class="grid grid-3 reveal">
-      <div class="card">
-        <div class="icon">📈</div>
-        <h3>Week-Ahead 예측</h3>
-        <p>기존 상용/공공 서비스(40~72시간) 대비 예측 지평을 최대 7일까지 확장했습니다.</p>
-      </div>
-      <div class="card">
-        <div class="icon">🔍</div>
-        <h3>예측 vs 실측 비교</h3>
-        <p>실측 데이터 유입 시 예측치와의 편차를 자동으로 비교해 원인 파악에 활용합니다.</p>
-      </div>
-      <div class="card">
-        <div class="icon">🔋</div>
-        <h3>스마트 관리 제안</h3>
-        <p>발전량 부족이 예상될 때 절전 및 효율적 에너지 사용 방안을 실행 가능한 형태로 제공합니다.</p>
-      </div>
-    </div>
-  </div>
-</section>
+      <section class="kpi-row" id="kpiRow"></section>
 
-<!-- ===================== PROBLEM ===================== -->
-<section id="problem" class="alt-bg">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Problem &amp; Motivation</span>
-      <h2>왜 예측만으로는 부족한가</h2>
-      <p>청정에너지 확대와 함께 태양광 비중이 커지고 있지만, 날씨 의존적인 발전 특성 때문에 안정적인 전력망 운영이 쉽지 않습니다.</p>
-    </div>
-
-    <div class="grid grid-3 reveal">
-      <div class="card">
-        <span class="tag">배경</span>
-        <h3>변동성 큰 태양광 발전</h3>
-        <p>일사량·날씨·계절 등 환경 요인에 따라 발전량 변동성이 매우 커, 사전 예측 없이는 운영 계획을 세우기 어렵습니다.</p>
-      </div>
-      <div class="card">
-        <span class="tag">문제</span>
-        <h3>정확한 예측의 어려움</h3>
-        <p>날씨 의존적인 발전량을 정확히 예측하기 어렵고, 사전 예측 없이는 그리드 운영 계획 수립이 어렵습니다.</p>
-      </div>
-      <div class="card">
-        <span class="tag">니즈</span>
-        <h3>실행 가능한 시스템</h3>
-        <p>부정확한 예측으로 인한 공급 차질을 줄이려면, 단순 수치 예측을 넘어선 실행 가능한 관리 시스템이 필요합니다.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== GOALS & USERS ===================== -->
-<section id="goals">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Goal</span>
-      <h2>Solarix AI의 3가지 목표</h2>
-    </div>
-    <div class="grid grid-3 reveal">
-      <div class="card">
-        <div class="icon">1</div>
-        <h3>미래 7일 발전량 예측</h3>
-        <p>기상 데이터와 과거 발전량 데이터를 활용해 시간 단위로 미래 7일 태양광 발전량을 예측합니다.</p>
-      </div>
-      <div class="card">
-        <div class="icon">2</div>
-        <h3>부족 상황 조기 파악</h3>
-        <p>예측치와 실측치를 비교하여 발전량 부족 상황을 조기에 파악합니다.</p>
-      </div>
-      <div class="card">
-        <div class="icon">3</div>
-        <h3>스마트 절전 방안 제안</h3>
-        <p>발전량 부족이 예상될 경우 스마트 절전 및 효율적 에너지 사용 방안을 제안합니다.</p>
-      </div>
-    </div>
-
-    <div class="section-head reveal" style="margin-top:64px;">
-      <span class="kicker">Target Users</span>
-      <h2>누구를 위한 서비스인가</h2>
-    </div>
-    <div class="table-wrap reveal">
-      <table>
-        <thead>
-          <tr><th>타겟</th><th>특징</th><th>니즈</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>민간 발전사업자 &amp; 태양광 발전소 운영자</strong></td>
-            <td>이상 발전량에 대한 실시간 모니터링·알림이 필요한 현장 운영팀</td>
-            <td>실시간 이상 감지 및 알림</td>
-          </tr>
-          <tr>
-            <td><strong>가상발전소(VPP) 운영자 &amp; 에너지관리 기업</strong></td>
-            <td>다수의 분산 발전원의 발전량을 예측·관리해야 하는 기업</td>
-            <td>다수 자원의 통합 예측 및 관리</td>
-          </tr>
-          <tr>
-            <td><strong>전력 그리드(계통) 운영자</strong></td>
-            <td>안정적 전력 공급 계획을 위해 정확한 예측이 필요한 조직</td>
-            <td>정확한 수급 계획용 예측 데이터</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== CORE FEATURES ===================== -->
-<section id="features" class="alt-bg">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Core Features</span>
-      <h2>핵심 기능</h2>
-    </div>
-    <div class="grid grid-4 reveal">
-      <div class="card">
-        <div class="icon">🗓️</div>
-        <h3>7일 발전량 예측</h3>
-        <p>시간 단위로 향후 최대 7일간 발전량을 예측합니다. 기존 서비스(40~72시간) 대비 예측 지평이 대폭 확장되었습니다.</p>
-      </div>
-      <div class="card">
-        <div class="icon">⚖️</div>
-        <h3>예측 vs 실측 비교</h3>
-        <p>예측된 발전량과 실제 발전량을 지속적으로 비교하고, 편차 발생 시 기상 급변 등 원인 파악에 활용합니다.</p>
-      </div>
-      <div class="card">
-        <div class="icon">🚨</div>
-        <h3>부족 예측 &amp; 이상 감지</h3>
-        <p>주간(daylight) 시간대를 기준으로 이상 발전량 후보를 탐지합니다. EDA 결과 293건의 실제 이상 후보를 확인했습니다.</p>
-      </div>
-      <div class="card">
-        <div class="icon">💡</div>
-        <h3>스마트 전력 관리 제안</h3>
-        <p>부족 예상 시 절전 및 효율적 에너지 사용 방안을 제안해, 단순 수치를 넘어선 실행 가능한 조언을 제공합니다.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== USER FLOW ===================== -->
-<section id="flow">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">User Flow</span>
-      <h2>서비스는 이렇게 동작합니다</h2>
-      <p>데이터 수집부터 사용자 전달까지, 예측과 관리 제안이 하나의 흐름으로 이어집니다.</p>
-    </div>
-    <div class="flow reveal">
-      <div class="flow-step">
-        <div class="n">1</div>
-        <h4>데이터 수집</h4>
-        <p>발전소 실측 발전량 + Open-Meteo 기상 데이터를 실시간/배치로 수집</p>
-      </div>
-      <div class="flow-step">
-        <div class="n">2</div>
-        <h4>발전량 예측</h4>
-        <p>학습된 모델(XGBoost/RF/LSTM)이 향후 7일 시간대별 발전량을 예측</p>
-      </div>
-      <div class="flow-step">
-        <div class="n">3</div>
-        <h4>예측 vs 실측 비교</h4>
-        <p>실측 데이터 유입 시 예측치와의 편차를 자동 비교</p>
-      </div>
-      <div class="flow-step">
-        <div class="n">4</div>
-        <h4>이상/부족 판단</h4>
-        <p>주간 시간대 기준 이상 발전량 또는 부족 예상 여부를 판정</p>
-      </div>
-
-      <div class="flow-branch">
-        <div class="flow-step branch-ok">
-          <div class="n">✓</div>
-          <h4>정상</h4>
-          <p>예측 결과만 사용자에게 제공</p>
+      <section class="chart-card">
+        <div class="chart-head">
+          <div>
+            <h2 id="chartTitle">시간대별 발전량 비교</h2>
+            <p id="chartSub">작년 동일 날짜 실측치와 올해 예측치를 시간 단위로 비교합니다.</p>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--sky-700)"></i>작년 실측</span>
+            <span><i style="background:var(--sun-500)"></i>올해 예측</span>
+            <span><i style="background:rgba(244,163,0,0.25)"></i>예측 불확실 구간</span>
+          </div>
         </div>
-        <div class="flow-step branch-alert">
-          <div class="n">!</div>
-          <h4>이상/부족 감지</h4>
-          <p>스마트 관리 제안 생성 단계로 이동</p>
-        </div>
-      </div>
+        <div class="chart-svg-wrap"><svg id="chartSvg" viewBox="0 0 720 320"></svg></div>
+      </section>
 
-      <div class="flow-step" style="grid-column: span 3;">
-        <div class="n">5</div>
-        <h4>스마트 관리 제안 생성</h4>
-        <p>부족 상황에 맞는 절전/에너지 사용 최적화 방안 생성</p>
-      </div>
-      <div class="flow-step" style="grid-column: span 3;">
-        <div class="n">6</div>
-        <h4>사용자 전달</h4>
-        <p>발전사업자/VPP/그리드 운영자에게 예측치 + (필요 시) 관리 제안 제공</p>
-      </div>
+      <section class="bottom-grid">
+        <div class="panel">
+          <h3>7일 발전량 개요 (kWh)</h3>
+          <div class="mini-bars" id="miniBars"></div>
+          <div class="mini-bars-labels" id="miniBarsLabels"></div>
+        </div>
+
+        <div class="panel">
+          <h3 id="weatherTitle">선택일 기상 조건 (예측)</h3>
+          <div class="weather-grid" id="weatherGrid"></div>
+        </div>
+
+        <div class="panel advice-panel" id="advicePanel">
+          <h3 id="adviceTitle">스마트 전력 관리 제안</h3>
+          <div id="adviceBody"></div>
+        </div>
+      </section>
     </div>
+
+    <footer class="dash-footer">Solarix AI · 관리자 대시보드 · 표시된 수치는 시연용 시뮬레이션 데이터입니다.</footer>
   </div>
-</section>
-
-<!-- ===================== NOVELTY ===================== -->
-<section id="novelty" class="alt-bg">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Novelty &amp; Differentiation</span>
-      <h2>기존 서비스 대비 차별점</h2>
-      <p>대부분의 공공·민간 서비스는 40~72시간 단기 예측에 머물러 있습니다. Solarix AI는 예측 지평과 검증 방법론 모두에서 한 걸음 더 나아갑니다.</p>
-    </div>
-
-    <div class="table-wrap reveal" style="margin-bottom:32px;">
-      <table>
-        <thead>
-          <tr><th>구분</th><th>서비스</th><th>예측 범위</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>공공/정부</td><td>기상청 태양광 시뮬레이션</td><td>전국 대상, 최대 40시간</td></tr>
-          <tr><td>공공/정부</td><td>서울 일조지도</td><td>설치 전 테스트용 (실시간 예보 아님)</td></tr>
-          <tr><td>국내 민간</td><td>Haezoom Forecast API</td><td>전력거래 기업 대상, 최대 72시간</td></tr>
-          <tr><td>국내 민간</td><td>MakinaRocks</td><td>앙상블 기반 B2B 예측 솔루션</td></tr>
-          <tr><td>학계 연구</td><td>다수 연구</td><td>대부분 15분~1일 단기 예측, 주 단위 이상 연구는 드묾</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="grid grid-2 reveal">
-      <div class="card">
-        <span class="tag">차별점 ①</span>
-        <h3>7일(주 단위) 장기 예측</h3>
-        <p>기존 서비스(40~72h) 대비 예측 지평을 확장했습니다. 학계에서도 주 단위 예측 연구는 드뭅니다.</p>
-      </div>
-      <div class="card">
-        <span class="tag">차별점 ②</span>
-        <h3>계절 균형 데이터 분할 방법론</h3>
-        <p>Train:Val:Test = 75:10:15, 검증셋은 사계절 각 2개월씩 균등 배분해 기존 연구가 느슨하게 다루던 계절 편향 문제를 명확한 수치 기준으로 해결했습니다.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== DATA ===================== -->
-<section id="data">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Data</span>
-      <h2>데이터 소스 &amp; 규모</h2>
-    </div>
-
-    <div class="table-wrap reveal" style="margin-bottom:28px;">
-      <table>
-        <thead><tr><th>구분</th><th>출처</th><th>비고</th></tr></thead>
-        <tbody>
-          <tr><td>발전량</td><td>한국동서발전(주) 당진 태양광 (공공데이터포털)</td><td>발전기 3대(0.7MW+1.0MW+1.0MW=2.7MW) 합산</td></tr>
-          <tr><td>기상</td><td>Open-Meteo Historical Weather API</td><td>무료 공개 CSV, 시간 단위</td></tr>
-          <tr><td>위치/기간</td><td>위도 37.05075, 경도 126.5103</td><td>2022-04-01 ~ 2025-12-31 (약 3.75년)</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="grid grid-4 reveal" style="margin-bottom:44px;">
-      <div class="card"><div class="icon">⏱️</div><h3>32,904</h3><p>전체 시간 수 (행 수)</p></div>
-      <div class="card"><div class="icon">✅</div><h3>32,633 (99.18%)</h3><p>결측 제거 후 사용 가능 시간</p></div>
-      <div class="card"><div class="icon">🧩</div><h3>11개</h3><p>입력 Feature (기상 8종 + 시간 2종 + 태양고도 1종)</p></div>
-      <div class="card"><div class="icon">🔗</div><h3>0.96~0.98</h3><p>발전기 3대 간 상관관계 (±3.6% 이내 편차)</p></div>
-    </div>
-
-    <div class="section-head reveal" style="margin-bottom:24px;">
-      <h3 style="margin:0 0 6px;font-size:1.15rem;">Feature와 발전량의 상관관계</h3>
-      <p style="margin:0;">전천일사량이 발전량과 가장 강한 연관을 보이며, 운량·습도는 음의 상관을 나타냅니다.</p>
-    </div>
-    <div class="card reveal">
-      <div class="bar-list">
-        <div class="bar-row">
-          <div class="name">전천일사량<span class="sub">shortwave_radiation</span></div>
-          <div class="bar-track"><div class="bar-fill" data-w="90"></div></div>
-          <div class="bar-val">0.90</div>
-        </div>
-        <div class="bar-row">
-          <div class="name">직달일사량<span class="sub">direct_radiation</span></div>
-          <div class="bar-track"><div class="bar-fill" data-w="88"></div></div>
-          <div class="bar-val">0.88</div>
-        </div>
-        <div class="bar-row">
-          <div class="name">산란일사량<span class="sub">diffuse_radiation</span></div>
-          <div class="bar-track"><div class="bar-fill" data-w="73"></div></div>
-          <div class="bar-val">0.73</div>
-        </div>
-        <div class="bar-row">
-          <div class="name">상대습도<span class="sub">humidity</span></div>
-          <div class="bar-track"><div class="bar-fill neg" data-w="36"></div></div>
-          <div class="bar-val">-0.36</div>
-        </div>
-        <div class="bar-row">
-          <div class="name">운량<span class="sub">cloud_cover</span></div>
-          <div class="bar-track"><div class="bar-fill neg" data-w="16"></div></div>
-          <div class="bar-val">-0.16</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== EDA ===================== -->
-<section id="eda" class="alt-bg">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">EDA — Daytime Filtering</span>
-      <h2>왜 주간(Daytime) 필터링이 필요한가</h2>
-      <p>야간 시간대(발전량=0)가 전체 데이터의 42~57%를 차지해 통계 왜곡이 발생합니다. 일사량(shortwave_radiation &gt; 0) 기준으로 주간을 필터링했습니다.</p>
-    </div>
-
-    <div class="compare reveal">
-      <div class="card old">
-        <h3>필터링 전 <span class="pill bad">왜곡</span></h3>
-        <ul>
-          <li>겨울/가을 중앙값이 0으로 왜곡됨</li>
-          <li>맑은 날 정상값도 이상치로 오분류 (최대 16.3%)</li>
-          <li>일사량-발전량 상관계수 0.90 — 야간 0=0 중첩으로 과대평가</li>
-        </ul>
-      </div>
-      <div class="card new">
-        <h3>필터링 후 <span class="pill good">정상화</span></h3>
-        <ul>
-          <li>중앙값이 정상적으로 박스 중앙에 위치</li>
-          <li>이상치 오탐 대폭 감소</li>
-          <li>일사량-발전량 상관계수 0.85 — 실제 주간 관계 반영</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="grid grid-4 reveal" style="margin-top:28px;">
-      <div class="card"><div class="icon">📐</div><h3>통계적 왜곡 제거</h3><p>왜곡된 중앙값, 과다 이상치, 부풀려진 상관관계를 해소합니다.</p></div>
-      <div class="card"><div class="icon">⚙️</div><h3>모델 학습 효율화</h3><p>"야간=0" 자명한 패턴 대신 주간 예측이라는 어려운 과제에 집중합니다.</p></div>
-      <div class="card"><div class="icon">🎯</div><h3>서비스 목표와 정합성</h3><p>이상 감지는 주간에만 의미가 있습니다.</p></div>
-      <div class="card"><div class="icon">🔦</div><h3>실제 이상 신호 보존</h3><p>일사량 기준 필터링으로 주간인데 발전량 0인 293건의 실제 이상 후보를 유지합니다.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== MODELING ===================== -->
-<section id="modeling">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">AI Modeling</span>
-      <h2>데이터 분할 &amp; 후보 모델</h2>
-    </div>
-
-    <div class="reveal" style="margin-bottom:44px;">
-      <div class="split-bar">
-        <div class="split-seg train">Train 75%</div>
-        <div class="split-seg val">Val 10%</div>
-        <div class="split-seg test">Test 15%</div>
-      </div>
-      <div class="split-legend">
-        <span><i class="dot" style="background:var(--sky-800)"></i>Train (2022-04 ~ 2024-12, 약 3년 9개월) — 사계절·다양한 날씨 조건 반복 학습</span>
-        <span><i class="dot" style="background:#4d7aa8"></i>Validation (2025-01 ~ 2025-05) — 모델 선택 및 튜닝, 과적합 점검</span>
-        <span><i class="dot" style="background:var(--sun-500)"></i>Test (2025-06 ~ 2025-12-31, 최근 약 6개월) — 최종 성능 검증, 여러 계절 평가</span>
-      </div>
-    </div>
-
-    <div class="grid grid-3 reveal" style="margin-bottom:48px;">
-      <div class="card model-card">
-        <div class="role">메인 모델</div>
-        <h3>XGBoost</h3>
-        <p>Gradient Boosting 기반. 높은 정확도, 비선형 패턴 학습, Feature Importance 제공.</p>
-        <div class="pros-cons">
-          <div><strong>강점</strong>비선형 패턴 학습</div>
-          <div><strong>한계</strong>튜닝 미흡 시 과적합 가능</div>
-        </div>
-      </div>
-      <div class="card model-card">
-        <div class="role">베이스라인</div>
-        <h3>Random Forest</h3>
-        <p>Bagging 기반. 안정적이며 과적합에 강하고 구축·튜닝이 용이합니다.</p>
-        <div class="pros-cons">
-          <div><strong>강점</strong>안정성, 과적합 강건</div>
-          <div><strong>한계</strong>미세 오차 조정에 약함</div>
-        </div>
-      </div>
-      <div class="card model-card">
-        <div class="role">딥러닝 비교 모델</div>
-        <h3>LSTM</h3>
-        <p>RNN 기반. 시계열 패턴 및 장기 추세 학습에 강점이 있습니다.</p>
-        <div class="pros-cons">
-          <div><strong>강점</strong>시계열/장기 추세</div>
-          <div><strong>한계</strong>전처리 부담, 학습 시간 증가</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-head reveal">
-      <h3 style="margin:0 0 6px;font-size:1.15rem;">평가지표</h3>
-    </div>
-    <div class="grid grid-3 reveal">
-      <div class="card"><div class="icon">📏</div><h3>MAE</h3><p>메인 지표. kWh 단위 평균 오차로 설명이 간단합니다.</p></div>
-      <div class="card"><div class="icon">📊</div><h3>RMSE</h3><p>오차 제곱 기반. 급격한 기상 변화로 인한 큰 오차에 민감합니다.</p></div>
-      <div class="card"><div class="icon">🧮</div><h3>R²</h3><p>0~1 스케일의 전반적 적합도. 1에 가까울수록 좋은 적합입니다.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== RISKS ===================== -->
-<section id="risks" class="alt-bg">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Risks &amp; Constraints</span>
-      <h2>리스크 및 제약</h2>
-    </div>
-    <ul class="risk-list reveal">
-      <li>예측 지평이 길어질수록(Day 5~7) 기상 예보 자체의 불확실성 확대로 <span>성능 저하 가능</span></li>
-      <li>단일 발전소(당진) 데이터 기반 — <span>타 지역 일반화 가능성 별도 검증 필요</span></li>
-      <li>데이터 기간 약 3.75년으로 <span>장기 기후 변동(이상기후 등) 학습에는 제한적</span></li>
-      <li>이상/부족 감지는 규칙 기반 후보 탐지 수준이며, <span>정교한 이상 탐지 모델링은 향후 고도화 필요</span></li>
-    </ul>
-  </div>
-</section>
-
-<!-- ===================== TEAM ===================== -->
-<section id="team">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="kicker">Team</span>
-      <h2>Solarix AI 팀</h2>
-      <p>2026 Agentic AI Innovation Challenge 참가팀</p>
-    </div>
-    <div class="team-grid reveal">
-      <div class="card team-card"><div class="avatar">HK</div><h3>Hyunseo Kim</h3><p>Team Member</p></div>
-      <div class="card team-card"><div class="avatar">JC</div><h3>Jiyoon Choi</h3><p>Team Member</p></div>
-      <div class="card team-card"><div class="avatar">YP</div><h3>Ye Jeong Park</h3><p>Team Member</p></div>
-      <div class="card team-card"><div class="avatar">GK</div><h3>Gwangmin Kim</h3><p>Team Member</p></div>
-    </div>
-
-    <div class="section-head reveal" style="margin-top:64px;">
-      <span class="kicker">References</span>
-      <h2>참고문헌</h2>
-    </div>
-    <ul class="ref-list reveal">
-      <li>김우현 외. (2024). 인공지능 알고리즘 기반 미국 Arroyo Grande 시 태양광 발전량 예측 분석. 한국통신학회 학술대회논문집.</li>
-      <li>이영학. (2026). 기상 데이터 상관관계 분석 기반의 가중치 모델을 적용한 태양광 발전량 예측 연구. 한국정보기술학회논문지.</li>
-      <li>이보람 외. (2024). 머신러닝 기반 태양광 에너지 발전량 예측 및 모델별 비교 연구. 전력전자학회 학술대회 논문집.</li>
-    </ul>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap">
-    <a href="#top" class="brand"><span class="brand-mark"></span>Solarix AI</a>
-    <div class="foot-meta">
-      2026 Agentic AI Innovation Challenge · PRD v2.0 · 2026-07-13<br>
-      Hyunseo Kim · Jiyoon Choi · Ye Jeong Park · Gwangmin Kim
-    </div>
-  </div>
-</footer>
+</div>
 
 <script>
-// Mobile nav toggle
-const navToggle = document.getElementById('navToggle');
-const navLinks = document.getElementById('navLinks');
-if (navToggle) {
-  navToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
-  });
-  navLinks.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => navLinks.classList.remove('open'));
-  });
-}
-
-// Scroll-spy for active nav link
-const sections = document.querySelectorAll('section[id]');
-const navAnchors = document.querySelectorAll('.nav-links a');
-
-const spy = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const id = entry.target.getAttribute('id');
-        navAnchors.forEach((a) => {
-          a.classList.toggle('active', a.getAttribute('href') === `#${id}`);
-        });
-      }
-    });
-  },
-  { rootMargin: '-45% 0px -50% 0px' }
-);
-sections.forEach((s) => spy.observe(s));
-
-// Reveal-on-scroll
-const revealEls = document.querySelectorAll('.reveal');
-const revealer = new IntersectionObserver(
-  (entries, obs) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in');
-        obs.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.12 }
-);
-revealEls.forEach((el) => revealer.observe(el));
-
-// Animated stat counters
-function animateCount(el) {
-  const target = parseFloat(el.dataset.count);
-  const suffix = el.dataset.suffix || '';
-  const isInt = Number.isInteger(target);
-  const duration = 1200;
-  const start = performance.now();
-
-  function tick(now) {
-    const progress = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const value = target * eased;
-    el.textContent = (isInt ? Math.round(value).toLocaleString() : value.toFixed(2)) + suffix;
-    if (progress < 1) requestAnimationFrame(tick);
+// ---------- Seeded random (mulberry32) ----------
+function hashStr(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
   }
-  requestAnimationFrame(tick);
+  return () => {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h = (h ^= h >>> 16) >>> 0;
+    return h;
+  };
+}
+function mulberry32(seed) {
+  let a = seed;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seededRng(seedStr) {
+  const gen = hashStr(seedStr);
+  return mulberry32(gen());
 }
 
-const counters = document.querySelectorAll('[data-count]');
-const counterObserver = new IntersectionObserver(
-  (entries, obs) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        animateCount(entry.target);
-        obs.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.4 }
-);
-counters.forEach((el) => counterObserver.observe(el));
+// ---------- Date helpers ----------
+function fmtKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function fmtLabel(d) {
+  const w = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+  return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + w + ')';
+}
+function addDays(d, n) {
+  const nd = new Date(d);
+  nd.setDate(nd.getDate() + n);
+  return nd;
+}
+function lastYear(d) {
+  const nd = new Date(d);
+  nd.setFullYear(nd.getFullYear() - 1);
+  return nd;
+}
 
-// Animated correlation bars
-const barFills = document.querySelectorAll('.bar-fill');
-const barObserver = new IntersectionObserver(
-  (entries, obs) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        el.style.width = el.dataset.w + '%';
-        obs.unobserve(el);
-      }
+// ---------- Seasonal profile ----------
+const MONTH_PROFILE = [
+  { sunrise: 7.6, sunset: 17.5, amp: 0.50, temp: 0 },
+  { sunrise: 7.2, sunset: 18.0, amp: 0.60, temp: 2 },
+  { sunrise: 6.5, sunset: 18.4, amp: 0.75, temp: 7 },
+  { sunrise: 5.8, sunset: 18.9, amp: 0.88, temp: 13 },
+  { sunrise: 5.3, sunset: 19.3, amp: 0.95, temp: 18 },
+  { sunrise: 5.2, sunset: 19.6, amp: 1.00, temp: 22 },
+  { sunrise: 5.3, sunset: 19.5, amp: 0.97, temp: 25 },
+  { sunrise: 5.6, sunset: 19.1, amp: 0.93, temp: 26 },
+  { sunrise: 6.0, sunset: 18.4, amp: 0.85, temp: 21 },
+  { sunrise: 6.5, sunset: 17.7, amp: 0.72, temp: 15 },
+  { sunrise: 7.1, sunset: 17.3, amp: 0.58, temp: 8 },
+  { sunrise: 7.5, sunset: 17.3, amp: 0.48, temp: 2 },
+];
+const PEAK_KWH = 2700 * 0.72; // 2.7MW plant, ~72% peak capacity factor on a clear hour
+
+function dayGeneration(date, seedPrefix) {
+  const rng = seededRng(seedPrefix + '-' + fmtKey(date));
+  const profile = MONTH_PROFILE[date.getMonth()];
+  const dailyClearness = 0.5 + rng() * 0.48;
+  const hours = [];
+  for (let h = 0; h < 24; h++) {
+    let v = 0;
+    if (h >= profile.sunrise && h <= profile.sunset) {
+      const t = (h - profile.sunrise) / (profile.sunset - profile.sunrise);
+      const bell = Math.sin(Math.PI * t);
+      const noise = clamp(dailyClearness + (rng() - 0.5) * 0.14, 0.28, 1.05);
+      v = PEAK_KWH * profile.amp * bell * noise;
+    }
+    hours.push(Math.max(0, v));
+  }
+  const cloudCover = clamp(Math.round((1 - dailyClearness) * 100), 0, 100);
+  const precip = clamp(Math.round((1 - dailyClearness) * 110 - 15), 0, 90);
+  return { hours, dailyClearness, cloudCover, precip, temp: Math.round(profile.temp + (rng() - 0.5) * 6) };
+}
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function sum(arr) { return arr.reduce((a, b) => a + b, 0); }
+function fmtKwh(n) { return Math.round(n).toLocaleString() + ' kWh'; }
+
+// ---------- Build 7-day dataset ----------
+const today = new Date();
+const days = [];
+for (let i = 1; i <= 7; i++) {
+  const thisDate = addDays(today, i);
+  const lastDate = lastYear(thisDate);
+  const actual = dayGeneration(lastDate, 'actual');
+  const uncertaintyPct = 0.05 + (i - 1) * 0.025;
+  const forecastRaw = dayGeneration(thisDate, 'forecast');
+  const forecast = forecastRaw.hours;
+  const band = forecast.map((v) => ({
+    low: Math.max(0, v * (1 - uncertaintyPct)),
+    high: v * (1 + uncertaintyPct),
+  }));
+  const actualTotal = sum(actual.hours);
+  const forecastTotal = sum(forecast);
+  const shortagePct = actualTotal > 0 ? (actualTotal - forecastTotal) / actualTotal : 0;
+  days.push({
+    offset: i,
+    date: thisDate,
+    lastDate,
+    actual: actual.hours,
+    forecast,
+    band,
+    actualTotal,
+    forecastTotal,
+    shortagePct,
+    warn: shortagePct > 0.15,
+    weather: forecastRaw,
+    uncertaintyPct,
+  });
+}
+
+let selectedIndex = 0;
+
+// ---------- Render: day picker ----------
+const dayPickerEl = document.getElementById('dayPicker');
+function renderDayPicker() {
+  dayPickerEl.innerHTML = '';
+  days.forEach((d, idx) => {
+    const el = document.createElement('div');
+    el.className = 'day-pill' + (idx === selectedIndex ? ' selected' : '');
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.innerHTML = `
+      <div class="d-label">Day+${d.offset}</div>
+      <div class="d-date">${(d.date.getMonth() + 1)}/${d.date.getDate()}</div>
+      <span class="d-badge ${d.warn ? 'warn' : 'ok'}">${d.warn ? '부족 주의' : '정상'}</span>
+    `;
+    el.addEventListener('click', () => { selectedIndex = idx; renderAll(); });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectedIndex = idx; renderAll(); }
     });
-  },
-  { threshold: 0.3 }
-);
-barFills.forEach((el) => barObserver.observe(el));
+    dayPickerEl.appendChild(el);
+  });
+}
+
+// ---------- Render: KPI cards ----------
+const kpiRowEl = document.getElementById('kpiRow');
+function renderKpis() {
+  const d = days[selectedIndex];
+  const deltaPct = d.actualTotal > 0 ? ((d.forecastTotal - d.actualTotal) / d.actualTotal) * 100 : 0;
+  const deltaClass = deltaPct >= 0 ? 'up' : 'down';
+  const deltaArrow = deltaPct >= 0 ? '▲' : '▼';
+
+  kpiRowEl.innerHTML = `
+    <div class="kpi-card">
+      <div class="label">작년 발전량 (${fmtLabel(d.lastDate)})</div>
+      <div class="value">${fmtKwh(d.actualTotal)}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">예상 발전량 (${fmtLabel(d.date)})</div>
+      <div class="value">${fmtKwh(d.forecastTotal)}</div>
+      <div class="delta ${deltaClass}">${deltaArrow} 작년 대비 ${Math.abs(deltaPct).toFixed(1)}%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">예측 불확실 범위</div>
+      <div class="value">± ${(d.uncertaintyPct * 100).toFixed(1)}<small>%</small></div>
+      <div class="delta" style="color:var(--muted);font-weight:600;">Day+${d.offset} 지평 기준</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">발전량 상태</div>
+      <div class="value"><span class="status-pill ${d.warn ? 'warn' : 'ok'}">${d.warn ? '⚠ 부족 예상' : '✓ 정상'}</span></div>
+      <div class="delta" style="color:var(--muted);font-weight:600;">${d.warn ? '스마트 관리 제안 확인 필요' : '별도 조치 불필요'}</div>
+    </div>
+  `;
+}
+
+// ---------- Render: line chart ----------
+function renderChart() {
+  const d = days[selectedIndex];
+  const svg = document.getElementById('chartSvg');
+  document.getElementById('chartTitle').textContent = `Day+${d.offset} (${fmtLabel(d.date)}) 시간대별 발전량`;
+  document.getElementById('chartSub').textContent = `작년 ${fmtLabel(d.lastDate)} 실측치와 올해 예측치를 비교합니다.`;
+
+  const padL = 56, padR = 16, padT = 18, padB = 34;
+  const w = 720, h = 320;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  const maxVal = Math.max(...d.band.map((b) => b.high), ...d.actual, 100) * 1.1;
+
+  const x = (hr) => padL + (hr / 23) * plotW;
+  const y = (v) => padT + plotH - (v / maxVal) * plotH;
+
+  let gridLines = '';
+  let gridLabels = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = (maxVal / 4) * i;
+    const yy = y(v);
+    gridLines += `<line x1="${padL}" y1="${yy}" x2="${w - padR}" y2="${yy}" stroke="var(--line)" stroke-width="1" />`;
+    gridLabels += `<text x="${padL - 10}" y="${yy + 4}" font-size="10" fill="var(--muted)" text-anchor="end">${Math.round(v).toLocaleString()}</text>`;
+  }
+
+  let xLabels = '';
+  for (let hr = 0; hr <= 23; hr += 3) {
+    xLabels += `<text x="${x(hr)}" y="${h - padB + 18}" font-size="10" fill="var(--muted)" text-anchor="middle">${hr}시</text>`;
+  }
+
+  const bandPath =
+    'M ' + d.band.map((b, i) => `${x(i)},${y(b.high)}`).join(' L ') +
+    ' L ' + d.band.slice().reverse().map((b, i) => `${x(23 - i)},${y(b.low)}`).join(' L ') + ' Z';
+
+  const actualPath = 'M ' + d.actual.map((v, i) => `${x(i)},${y(v)}`).join(' L ');
+  const forecastPath = 'M ' + d.forecast.map((v, i) => `${x(i)},${y(v)}`).join(' L ');
+
+  const actualDots = d.actual.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="2.3" fill="var(--sky-700)" />`).join('');
+  const forecastDots = d.forecast.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="2.3" fill="var(--sun-500)" />`).join('');
+
+  svg.innerHTML = `
+    ${gridLines}
+    <path d="${bandPath}" fill="rgba(244,163,0,0.16)" stroke="none" />
+    <path d="${actualPath}" fill="none" stroke="var(--sky-700)" stroke-width="2.5" />
+    <path d="${forecastPath}" fill="none" stroke="var(--sun-500)" stroke-width="2.5" />
+    ${actualDots}
+    ${forecastDots}
+    ${gridLabels}
+    ${xLabels}
+  `;
+}
+
+// ---------- Render: 7-day mini overview ----------
+function renderMiniBars() {
+  const barsEl = document.getElementById('miniBars');
+  const labelsEl = document.getElementById('miniBarsLabels');
+  const maxTotal = Math.max(...days.map((d) => Math.max(d.actualTotal, d.forecastTotal)));
+  barsEl.innerHTML = '';
+  labelsEl.innerHTML = '';
+  days.forEach((d, idx) => {
+    const col = document.createElement('div');
+    col.className = 'mini-bar-col' + (idx === selectedIndex ? ' selected' : '');
+    col.setAttribute('role', 'button');
+    col.setAttribute('tabindex', '0');
+    const hA = Math.max(4, (d.actualTotal / maxTotal) * 100);
+    const hF = Math.max(4, (d.forecastTotal / maxTotal) * 100);
+    col.innerHTML = `
+      <div class="mini-bar" style="height:${hA}%" title="작년 ${fmtKwh(d.actualTotal)}"></div>
+      <div class="mini-bar forecast" style="height:${hF}%" title="예측 ${fmtKwh(d.forecastTotal)}"></div>
+    `;
+    col.addEventListener('click', () => { selectedIndex = idx; renderAll(); });
+    col.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectedIndex = idx; renderAll(); }
+    });
+    barsEl.appendChild(col);
+
+    const lbl = document.createElement('span');
+    lbl.textContent = 'D+' + d.offset;
+    labelsEl.appendChild(lbl);
+  });
+}
+
+// ---------- Render: weather panel ----------
+function renderWeather() {
+  const d = days[selectedIndex];
+  document.getElementById('weatherTitle').textContent = `${fmtLabel(d.date)} 기상 조건 (예측)`;
+  const el = document.getElementById('weatherGrid');
+  el.innerHTML = `
+    <div class="weather-item"><div class="w-label">☀ 맑음 지수</div><div class="w-value">${Math.round(d.weather.dailyClearness * 100)}%</div></div>
+    <div class="weather-item"><div class="w-label">☁ 운량</div><div class="w-value">${d.weather.cloudCover}%</div></div>
+    <div class="weather-item"><div class="w-label">🌡 기온</div><div class="w-value">${d.weather.temp}°C</div></div>
+    <div class="weather-item"><div class="w-label">🌧 강수확률</div><div class="w-value">${d.weather.precip}%</div></div>
+  `;
+}
+
+// ---------- Render: advice panel ----------
+function renderAdvice() {
+  const d = days[selectedIndex];
+  const panel = document.getElementById('advicePanel');
+  const title = document.getElementById('adviceTitle');
+  const body = document.getElementById('adviceBody');
+  panel.classList.remove('warn', 'ok');
+
+  if (d.warn) {
+    panel.classList.add('warn');
+    title.textContent = '⚠ 스마트 전력 관리 제안';
+    body.innerHTML = `
+      <ul>
+        <li>예상 발전량이 작년 동일 날짜 대비 <strong>${Math.abs(d.shortagePct * 100).toFixed(1)}%</strong> 부족할 것으로 예측됩니다.</li>
+        <li>피크 시간대(11~14시) 비필수 부하를 20% 낮추는 것을 권장합니다.</li>
+        <li>ESS(에너지저장장치) 사전 충전 및 예비 발전원 가동 검토가 필요합니다.</li>
+        <li>그리드 운영팀에 사전 공유해 수급 계획을 조정하세요.</li>
+      </ul>
+    `;
+  } else {
+    panel.classList.add('ok');
+    title.textContent = '✓ 스마트 전력 관리 제안';
+    body.innerHTML = `<p class="ok-msg">예상 발전량이 작년 수준과 비슷하거나 더 높습니다. 별도의 절전 조치 없이 정상 운영하시면 됩니다.</p>`;
+  }
+}
+
+// ---------- Clock ----------
+function renderClock() {
+  const now = new Date();
+  document.getElementById('clockTime').textContent = now.toLocaleTimeString('ko-KR', { hour12: false });
+  document.getElementById('clockDate').textContent = now.getFullYear() + '년 ' + (now.getMonth() + 1) + '월 ' + now.getDate() + '일';
+}
+
+function renderAll() {
+  renderDayPicker();
+  renderKpis();
+  renderChart();
+  renderMiniBars();
+  renderWeather();
+  renderAdvice();
+}
+
+renderAll();
+renderClock();
+setInterval(renderClock, 1000);
 </script>
 </body>
 </html>

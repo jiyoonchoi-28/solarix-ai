@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solarix AI — 태양광 발전량 예측 &amp; 스마트 전력 관리 에이전트</title>
+<meta name="description" content="Solarix AI는 기상 데이터와 실측 발전량을 학습해 최대 7일 태양광 발전량을 예측하고, 부족 상황을 조기에 감지해 스마트 전력 관리를 제안하는 AI 에이전트입니다.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='14' fill='%23f4a300'/%3E%3Cg stroke='%23f4a300' stroke-width='4' stroke-linecap='round'%3E%3Cline x1='32' y1='4' x2='32' y2='12'/%3E%3Cline x1='32' y1='52' x2='32' y2='60'/%3E%3Cline x1='4' y1='32' x2='12' y2='32'/%3E%3Cline x1='52' y1='32' x2='60' y2='32'/%3E%3Cline x1='12.4' y1='12.4' x2='18' y2='18'/%3E%3Cline x1='46' y1='46' x2='51.6' y2='51.6'/%3E%3Cline x1='51.6' y1='12.4' x2='46' y2='18'/%3E%3Cline x1='18' y1='46' x2='12.4' y2='51.6'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root {
+  --sun-500: #f4a300;
+  --sun-400: #ffc94a;
+  --sun-300: #ffd166;
+  --sky-900: #0b1930;
+  --sky-800: #10233f;
+  --sky-700: #16304f;
+  --sky-600: #1d3f66;
+  --ink: #0b1930;
+  --paper: #fbf9f4;
+  --paper-2: #f2ede1;
+  --line: #e5ddc8;
+  --muted: #6b7280;
+  --good: #2f9e6e;
+  --bad: #d1495b;
+  --radius: 16px;
+  --shadow: 0 8px 30px rgba(11, 25, 48, 0.08);
+  --shadow-lg: 0 20px 60px rgba(11, 25, 48, 0.16);
+  --maxw: 1120px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Segoe UI", "Malgun Gothic", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { max-width: 100%; display: block; }
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+a { color: inherit; }
+
+/* ---------- Nav ---------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(251, 249, 244, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--sun-300), var(--sun-500));
+  box-shadow: 0 0 0 4px rgba(244, 163, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 6px 2px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--ink);
+  border-color: var(--sun-500);
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+.nav-toggle span,
+.nav-toggle::before,
+.nav-toggle::after {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--ink);
+  margin: 4px auto;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(1000px 500px at 85% -10%, rgba(255, 209, 102, 0.35), transparent 60%),
+    radial-gradient(800px 400px at 10% 0%, rgba(29, 63, 102, 0.15), transparent 60%),
+    linear-gradient(180deg, var(--sky-900), var(--sky-800) 60%, var(--paper) 100%);
+  color: #fff;
+  padding: 120px 0 90px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 209, 102, 0.35);
+  color: var(--sun-300);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.hero h1 {
+  font-size: clamp(2.1rem, 4.5vw, 3.4rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 22px 0 18px;
+  max-width: 780px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--sun-300), var(--sun-500));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero p.lead {
+  max-width: 640px;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 34px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 56px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--sun-400), var(--sun-500));
+  color: var(--sky-900);
+  box-shadow: 0 10px 30px rgba(244, 163, 0, 0.35);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.hero-stat {
+  background: rgba(11, 25, 48, 0.35);
+  padding: 22px 18px;
+  text-align: left;
+}
+
+.hero-stat .num {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--sun-300);
+  letter-spacing: -0.02em;
+}
+
+.hero-stat .label {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 4px;
+}
+
+/* ---------- Sections ---------- */
+section { padding: 90px 0; }
+section.tight { padding: 70px 0; }
+
+.section-head {
+  max-width: 680px;
+  margin-bottom: 48px;
+}
+
+.kicker {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sun-500);
+  margin-bottom: 12px;
+}
+
+.section-head h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+
+.section-head p {
+  color: var(--muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.alt-bg { background: var(--paper-2); }
+
+/* fade-in on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Cards / Grids ---------- */
+.grid {
+  display: grid;
+  gap: 20px;
+}
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 26px;
+  box-shadow: var(--shadow);
+}
+
+.card .icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--sun-300), var(--sun-500));
+  color: var(--sky-900);
+  margin-bottom: 16px;
+  font-size: 1.3rem;
+}
+
+.card h3 {
+  margin: 0 0 8px;
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(244, 163, 0, 0.12);
+  color: #a5680a;
+  margin-bottom: 10px;
+}
+
+/* ---------- Table ---------- */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  min-width: 560px;
+}
+
+th, td {
+  text-align: left;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+thead th {
+  background: var(--paper-2);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(244, 163, 0, 0.05); }
+
+td strong, th strong { color: var(--ink); }
+
+/* ---------- Flow diagram ---------- */
+.flow {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+
+.flow-step {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px 16px;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+
+.flow-step .n {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sky-900);
+  color: var(--sun-300);
+  font-weight: 800;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.flow-step h4 {
+  margin: 0 0 6px;
+  font-size: 0.94rem;
+}
+
+.flow-step p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.flow-branch {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.flow-branch .flow-step.branch-ok { border-color: rgba(47, 158, 110, 0.35); }
+.flow-branch .flow-step.branch-alert { border-color: rgba(209, 73, 91, 0.35); }
+
+.flow-branch .flow-step.branch-ok .n { background: var(--good); color: #fff; }
+.flow-branch .flow-step.branch-alert .n { background: var(--bad); color: #fff; }
+
+/* ---------- Comparison ---------- */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.compare .card.old { border-color: rgba(209, 73, 91, 0.3); }
+.compare .card.new { border-color: rgba(47, 158, 110, 0.35); background: linear-gradient(180deg, #fff, #fbfff9); }
+
+.compare h3 { display: flex; align-items: center; gap: 8px; }
+.pill {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.pill.bad { background: rgba(209, 73, 91, 0.12); color: var(--bad); }
+.pill.good { background: rgba(47, 158, 110, 0.12); color: var(--good); }
+
+.compare ul {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.compare li { margin-bottom: 6px; }
+
+/* ---------- Bars (feature correlation) ---------- */
+.bar-list { display: flex; flex-direction: column; gap: 14px; }
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 60px;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.88rem;
+}
+
+.bar-row .name { font-weight: 700; color: var(--ink); }
+.bar-row .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+
+.bar-track {
+  height: 10px;
+  background: var(--paper-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sun-400), var(--sun-500));
+  width: 0%;
+  transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bar-fill.neg {
+  background: linear-gradient(90deg, #7f9cba, var(--sky-600));
+}
+
+.bar-val { text-align: right; font-weight: 700; color: var(--ink); }
+
+/* ---------- Split timeline ---------- */
+.split-bar {
+  display: flex;
+  height: 54px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.split-seg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.split-seg.train { background: var(--sky-800); width: 75%; }
+.split-seg.val { background: #4d7aa8; width: 10%; }
+.split-seg.test { background: var(--sun-500); width: 15%; color: var(--sky-900); }
+.split-legend {
+  display: flex;
+  gap: 24px;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.split-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* ---------- Model cards ---------- */
+.model-card .role {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--sun-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.model-card .pros-cons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+}
+.model-card .pros-cons div strong { display: block; font-size: 0.72rem; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+
+/* ---------- Risk list ---------- */
+.risk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.risk-list li {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--sun-500);
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-size: 0.92rem;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.risk-list li span { color: var(--muted); }
+
+/* ---------- Team ---------- */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.team-card {
+  text-align: center;
+  padding: 30px 18px;
+}
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  background: linear-gradient(135deg, var(--sky-700), var(--sky-900));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sun-300);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.team-card h3 { font-size: 1rem; margin-bottom: 4px; }
+.team-card p { font-size: 0.8rem; }
+
+/* ---------- References ---------- */
+.ref-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.ref-list li {
+  font-size: 0.88rem;
+  color: var(--muted);
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+/* ---------- Footer ---------- */
+footer {
+  background: var(--sky-900);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 44px 0 30px;
+  font-size: 0.85rem;
+}
+footer .wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+footer .brand { color: #fff; }
+footer .foot-meta { text-align: right; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .flow { grid-template-columns: repeat(3, 1fr); }
+  .flow-branch { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 720px) {
+  .nav-links {
+    position: absolute;
+    top: 68px; left: 0; right: 0;
+    background: var(--paper);
+    flex-direction: column;
+    padding: 16px 24px 24px;
+    border-bottom: 1px solid var(--line);
+    display: none;
+    gap: 16px;
+  }
+  .nav-links.open { display: flex; }
+  .nav-toggle { display: block; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .flow { grid-template-columns: 1fr; }
+  .compare { grid-template-columns: 1fr; }
+  .bar-row { grid-template-columns: 100px 1fr 46px; }
+  section { padding: 60px 0; }
+  .hero { padding: 100px 0 60px; }
+  footer .wrap { flex-direction: column; align-items: flex-start; text-align: left; }
+  footer .foot-meta { text-align: left; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0e1524;
+    --paper-2: #131b2c;
+    --line: #223049;
+    --ink: #f1f4f9;
+    --muted: #9aa7bc;
+    --shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+  .card, .table-wrap, .flow-step, .risk-list li, .ref-list li { background: #101a2d; }
+  thead th { background: #16223a; }
+  .compare .card.new { background: linear-gradient(180deg, #101a2d, #0f1c17); }
+  .nav { background: rgba(14, 21, 36, 0.85); }
+  .nav-links { background: var(--paper); }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a href="#top" class="brand"><span class="brand-mark"></span>Solarix AI</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#overview">개요</a></li>
+      <li><a href="#problem">문제정의</a></li>
+      <li><a href="#features">핵심기능</a></li>
+      <li><a href="#novelty">차별점</a></li>
+      <li><a href="#data">데이터</a></li>
+      <li><a href="#modeling">모델링</a></li>
+      <li><a href="#team">팀</a></li>
+      <li><a href="index.html">대시보드 →</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기"><span></span></button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <span class="eyebrow">☀ 2026 Agentic AI Innovation Challenge</span>
+    <h1>태양광 발전량, <em>7일 앞</em>을 내다보는 AI 에이전트</h1>
+    <p class="lead">
+      한국동서발전(주) 당진 태양광 발전소의 실측 발전량과 Open-Meteo 기상 데이터를 학습해
+      최대 7일 발전량을 예측하고, 예측·실측 비교로 부족 상황을 조기에 감지해
+      실행 가능한(actionable) 스마트 전력 관리 방안을 제안합니다.
+    </p>
+    <div class="hero-actions">
+      <a href="index.html" class="btn btn-primary">관리자 대시보드 보기</a>
+      <a href="#features" class="btn btn-ghost">핵심 기능 보기</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num" data-count="7">0</div><div class="label">Day-Ahead 예측 지평</div></div>
+      <div class="hero-stat"><div class="num" data-count="32904">0</div><div class="label">학습 대상 시간 수 (행)</div></div>
+      <div class="hero-stat"><div class="num" data-count="99" data-suffix=".18%">0</div><div class="label">결측 제거 후 사용 가능 비율</div></div>
+      <div class="hero-stat"><div class="num" data-count="3">0</div><div class="label">비교 검증된 후보 모델</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== OVERVIEW ===================== -->
+<section id="overview">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Overview</span>
+      <h2>예측을 넘어, 실행 가능한 전력 관리까지</h2>
+      <p>
+        Solarix AI는 단순 발전량 예측 서비스가 아닙니다. 예측치와 실측치를 지속적으로 비교해
+        이상·부족 상황을 조기에 파악하고, 상황에 맞는 절전·에너지 사용 최적화 방안까지 제안하는
+        <strong>예측(Forecasting) + 관리 조언(Management Advice) 결합형 AI 에이전트</strong>입니다.
+      </p>
+    </div>
+
+    <div class="grid grid-3 reveal">
+      <div class="card">
+        <div class="icon">📈</div>
+        <h3>Week-Ahead 예측</h3>
+        <p>기존 상용/공공 서비스(40~72시간) 대비 예측 지평을 최대 7일까지 확장했습니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔍</div>
+        <h3>예측 vs 실측 비교</h3>
+        <p>실측 데이터 유입 시 예측치와의 편차를 자동으로 비교해 원인 파악에 활용합니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔋</div>
+        <h3>스마트 관리 제안</h3>
+        <p>발전량 부족이 예상될 때 절전 및 효율적 에너지 사용 방안을 실행 가능한 형태로 제공합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROBLEM ===================== -->
+<section id="problem" class="alt-bg">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Problem &amp; Motivation</span>
+      <h2>왜 예측만으로는 부족한가</h2>
+      <p>청정에너지 확대와 함께 태양광 비중이 커지고 있지만, 날씨 의존적인 발전 특성 때문에 안정적인 전력망 운영이 쉽지 않습니다.</p>
+    </div>
+
+    <div class="grid grid-3 reveal">
+      <div class="card">
+        <span class="tag">배경</span>
+        <h3>변동성 큰 태양광 발전</h3>
+        <p>일사량·날씨·계절 등 환경 요인에 따라 발전량 변동성이 매우 커, 사전 예측 없이는 운영 계획을 세우기 어렵습니다.</p>
+      </div>
+      <div class="card">
+        <span class="tag">문제</span>
+        <h3>정확한 예측의 어려움</h3>
+        <p>날씨 의존적인 발전량을 정확히 예측하기 어렵고, 사전 예측 없이는 그리드 운영 계획 수립이 어렵습니다.</p>
+      </div>
+      <div class="card">
+        <span class="tag">니즈</span>
+        <h3>실행 가능한 시스템</h3>
+        <p>부정확한 예측으로 인한 공급 차질을 줄이려면, 단순 수치 예측을 넘어선 실행 가능한 관리 시스템이 필요합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== GOALS & USERS ===================== -->
+<section id="goals">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Goal</span>
+      <h2>Solarix AI의 3가지 목표</h2>
+    </div>
+    <div class="grid grid-3 reveal">
+      <div class="card">
+        <div class="icon">1</div>
+        <h3>미래 7일 발전량 예측</h3>
+        <p>기상 데이터와 과거 발전량 데이터를 활용해 시간 단위로 미래 7일 태양광 발전량을 예측합니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">2</div>
+        <h3>부족 상황 조기 파악</h3>
+        <p>예측치와 실측치를 비교하여 발전량 부족 상황을 조기에 파악합니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">3</div>
+        <h3>스마트 절전 방안 제안</h3>
+        <p>발전량 부족이 예상될 경우 스마트 절전 및 효율적 에너지 사용 방안을 제안합니다.</p>
+      </div>
+    </div>
+
+    <div class="section-head reveal" style="margin-top:64px;">
+      <span class="kicker">Target Users</span>
+      <h2>누구를 위한 서비스인가</h2>
+    </div>
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr><th>타겟</th><th>특징</th><th>니즈</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>민간 발전사업자 &amp; 태양광 발전소 운영자</strong></td>
+            <td>이상 발전량에 대한 실시간 모니터링·알림이 필요한 현장 운영팀</td>
+            <td>실시간 이상 감지 및 알림</td>
+          </tr>
+          <tr>
+            <td><strong>가상발전소(VPP) 운영자 &amp; 에너지관리 기업</strong></td>
+            <td>다수의 분산 발전원의 발전량을 예측·관리해야 하는 기업</td>
+            <td>다수 자원의 통합 예측 및 관리</td>
+          </tr>
+          <tr>
+            <td><strong>전력 그리드(계통) 운영자</strong></td>
+            <td>안정적 전력 공급 계획을 위해 정확한 예측이 필요한 조직</td>
+            <td>정확한 수급 계획용 예측 데이터</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CORE FEATURES ===================== -->
+<section id="features" class="alt-bg">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Core Features</span>
+      <h2>핵심 기능</h2>
+    </div>
+    <div class="grid grid-4 reveal">
+      <div class="card">
+        <div class="icon">🗓️</div>
+        <h3>7일 발전량 예측</h3>
+        <p>시간 단위로 향후 최대 7일간 발전량을 예측합니다. 기존 서비스(40~72시간) 대비 예측 지평이 대폭 확장되었습니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚖️</div>
+        <h3>예측 vs 실측 비교</h3>
+        <p>예측된 발전량과 실제 발전량을 지속적으로 비교하고, 편차 발생 시 기상 급변 등 원인 파악에 활용합니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🚨</div>
+        <h3>부족 예측 &amp; 이상 감지</h3>
+        <p>주간(daylight) 시간대를 기준으로 이상 발전량 후보를 탐지합니다. EDA 결과 293건의 실제 이상 후보를 확인했습니다.</p>
+      </div>
+      <div class="card">
+        <div class="icon">💡</div>
+        <h3>스마트 전력 관리 제안</h3>
+        <p>부족 예상 시 절전 및 효율적 에너지 사용 방안을 제안해, 단순 수치를 넘어선 실행 가능한 조언을 제공합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== USER FLOW ===================== -->
+<section id="flow">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">User Flow</span>
+      <h2>서비스는 이렇게 동작합니다</h2>
+      <p>데이터 수집부터 사용자 전달까지, 예측과 관리 제안이 하나의 흐름으로 이어집니다.</p>
+    </div>
+    <div class="flow reveal">
+      <div class="flow-step">
+        <div class="n">1</div>
+        <h4>데이터 수집</h4>
+        <p>발전소 실측 발전량 + Open-Meteo 기상 데이터를 실시간/배치로 수집</p>
+      </div>
+      <div class="flow-step">
+        <div class="n">2</div>
+        <h4>발전량 예측</h4>
+        <p>학습된 모델(XGBoost/RF/LSTM)이 향후 7일 시간대별 발전량을 예측</p>
+      </div>
+      <div class="flow-step">
+        <div class="n">3</div>
+        <h4>예측 vs 실측 비교</h4>
+        <p>실측 데이터 유입 시 예측치와의 편차를 자동 비교</p>
+      </div>
+      <div class="flow-step">
+        <div class="n">4</div>
+        <h4>이상/부족 판단</h4>
+        <p>주간 시간대 기준 이상 발전량 또는 부족 예상 여부를 판정</p>
+      </div>
+
+      <div class="flow-branch">
+        <div class="flow-step branch-ok">
+          <div class="n">✓</div>
+          <h4>정상</h4>
+          <p>예측 결과만 사용자에게 제공</p>
+        </div>
+        <div class="flow-step branch-alert">
+          <div class="n">!</div>
+          <h4>이상/부족 감지</h4>
+          <p>스마트 관리 제안 생성 단계로 이동</p>
+        </div>
+      </div>
+
+      <div class="flow-step" style="grid-column: span 3;">
+        <div class="n">5</div>
+        <h4>스마트 관리 제안 생성</h4>
+        <p>부족 상황에 맞는 절전/에너지 사용 최적화 방안 생성</p>
+      </div>
+      <div class="flow-step" style="grid-column: span 3;">
+        <div class="n">6</div>
+        <h4>사용자 전달</h4>
+        <p>발전사업자/VPP/그리드 운영자에게 예측치 + (필요 시) 관리 제안 제공</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== NOVELTY ===================== -->
+<section id="novelty" class="alt-bg">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Novelty &amp; Differentiation</span>
+      <h2>기존 서비스 대비 차별점</h2>
+      <p>대부분의 공공·민간 서비스는 40~72시간 단기 예측에 머물러 있습니다. Solarix AI는 예측 지평과 검증 방법론 모두에서 한 걸음 더 나아갑니다.</p>
+    </div>
+
+    <div class="table-wrap reveal" style="margin-bottom:32px;">
+      <table>
+        <thead>
+          <tr><th>구분</th><th>서비스</th><th>예측 범위</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>공공/정부</td><td>기상청 태양광 시뮬레이션</td><td>전국 대상, 최대 40시간</td></tr>
+          <tr><td>공공/정부</td><td>서울 일조지도</td><td>설치 전 테스트용 (실시간 예보 아님)</td></tr>
+          <tr><td>국내 민간</td><td>Haezoom Forecast API</td><td>전력거래 기업 대상, 최대 72시간</td></tr>
+          <tr><td>국내 민간</td><td>MakinaRocks</td><td>앙상블 기반 B2B 예측 솔루션</td></tr>
+          <tr><td>학계 연구</td><td>다수 연구</td><td>대부분 15분~1일 단기 예측, 주 단위 이상 연구는 드묾</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid grid-2 reveal">
+      <div class="card">
+        <span class="tag">차별점 ①</span>
+        <h3>7일(주 단위) 장기 예측</h3>
+        <p>기존 서비스(40~72h) 대비 예측 지평을 확장했습니다. 학계에서도 주 단위 예측 연구는 드뭅니다.</p>
+      </div>
+      <div class="card">
+        <span class="tag">차별점 ②</span>
+        <h3>계절 균형 데이터 분할 방법론</h3>
+        <p>Train:Val:Test = 75:10:15, 검증셋은 사계절 각 2개월씩 균등 배분해 기존 연구가 느슨하게 다루던 계절 편향 문제를 명확한 수치 기준으로 해결했습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DATA ===================== -->
+<section id="data">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Data</span>
+      <h2>데이터 소스 &amp; 규모</h2>
+    </div>
+
+    <div class="table-wrap reveal" style="margin-bottom:28px;">
+      <table>
+        <thead><tr><th>구분</th><th>출처</th><th>비고</th></tr></thead>
+        <tbody>
+          <tr><td>발전량</td><td>한국동서발전(주) 당진 태양광 (공공데이터포털)</td><td>발전기 3대(0.7MW+1.0MW+1.0MW=2.7MW) 합산</td></tr>
+          <tr><td>기상</td><td>Open-Meteo Historical Weather API</td><td>무료 공개 CSV, 시간 단위</td></tr>
+          <tr><td>위치/기간</td><td>위도 37.05075, 경도 126.5103</td><td>2022-04-01 ~ 2025-12-31 (약 3.75년)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid grid-4 reveal" style="margin-bottom:44px;">
+      <div class="card"><div class="icon">⏱️</div><h3>32,904</h3><p>전체 시간 수 (행 수)</p></div>
+      <div class="card"><div class="icon">✅</div><h3>32,633 (99.18%)</h3><p>결측 제거 후 사용 가능 시간</p></div>
+      <div class="card"><div class="icon">🧩</div><h3>11개</h3><p>입력 Feature (기상 8종 + 시간 2종 + 태양고도 1종)</p></div>
+      <div class="card"><div class="icon">🔗</div><h3>0.96~0.98</h3><p>발전기 3대 간 상관관계 (±3.6% 이내 편차)</p></div>
+    </div>
+
+    <div class="section-head reveal" style="margin-bottom:24px;">
+      <h3 style="margin:0 0 6px;font-size:1.15rem;">Feature와 발전량의 상관관계</h3>
+      <p style="margin:0;">전천일사량이 발전량과 가장 강한 연관을 보이며, 운량·습도는 음의 상관을 나타냅니다.</p>
+    </div>
+    <div class="card reveal">
+      <div class="bar-list">
+        <div class="bar-row">
+          <div class="name">전천일사량<span class="sub">shortwave_radiation</span></div>
+          <div class="bar-track"><div class="bar-fill" data-w="90"></div></div>
+          <div class="bar-val">0.90</div>
+        </div>
+        <div class="bar-row">
+          <div class="name">직달일사량<span class="sub">direct_radiation</span></div>
+          <div class="bar-track"><div class="bar-fill" data-w="88"></div></div>
+          <div class="bar-val">0.88</div>
+        </div>
+        <div class="bar-row">
+          <div class="name">산란일사량<span class="sub">diffuse_radiation</span></div>
+          <div class="bar-track"><div class="bar-fill" data-w="73"></div></div>
+          <div class="bar-val">0.73</div>
+        </div>
+        <div class="bar-row">
+          <div class="name">상대습도<span class="sub">humidity</span></div>
+          <div class="bar-track"><div class="bar-fill neg" data-w="36"></div></div>
+          <div class="bar-val">-0.36</div>
+        </div>
+        <div class="bar-row">
+          <div class="name">운량<span class="sub">cloud_cover</span></div>
+          <div class="bar-track"><div class="bar-fill neg" data-w="16"></div></div>
+          <div class="bar-val">-0.16</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== EDA ===================== -->
+<section id="eda" class="alt-bg">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">EDA — Daytime Filtering</span>
+      <h2>왜 주간(Daytime) 필터링이 필요한가</h2>
+      <p>야간 시간대(발전량=0)가 전체 데이터의 42~57%를 차지해 통계 왜곡이 발생합니다. 일사량(shortwave_radiation &gt; 0) 기준으로 주간을 필터링했습니다.</p>
+    </div>
+
+    <div class="compare reveal">
+      <div class="card old">
+        <h3>필터링 전 <span class="pill bad">왜곡</span></h3>
+        <ul>
+          <li>겨울/가을 중앙값이 0으로 왜곡됨</li>
+          <li>맑은 날 정상값도 이상치로 오분류 (최대 16.3%)</li>
+          <li>일사량-발전량 상관계수 0.90 — 야간 0=0 중첩으로 과대평가</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <h3>필터링 후 <span class="pill good">정상화</span></h3>
+        <ul>
+          <li>중앙값이 정상적으로 박스 중앙에 위치</li>
+          <li>이상치 오탐 대폭 감소</li>
+          <li>일사량-발전량 상관계수 0.85 — 실제 주간 관계 반영</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid grid-4 reveal" style="margin-top:28px;">
+      <div class="card"><div class="icon">📐</div><h3>통계적 왜곡 제거</h3><p>왜곡된 중앙값, 과다 이상치, 부풀려진 상관관계를 해소합니다.</p></div>
+      <div class="card"><div class="icon">⚙️</div><h3>모델 학습 효율화</h3><p>"야간=0" 자명한 패턴 대신 주간 예측이라는 어려운 과제에 집중합니다.</p></div>
+      <div class="card"><div class="icon">🎯</div><h3>서비스 목표와 정합성</h3><p>이상 감지는 주간에만 의미가 있습니다.</p></div>
+      <div class="card"><div class="icon">🔦</div><h3>실제 이상 신호 보존</h3><p>일사량 기준 필터링으로 주간인데 발전량 0인 293건의 실제 이상 후보를 유지합니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MODELING ===================== -->
+<section id="modeling">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">AI Modeling</span>
+      <h2>데이터 분할 &amp; 후보 모델</h2>
+    </div>
+
+    <div class="reveal" style="margin-bottom:44px;">
+      <div class="split-bar">
+        <div class="split-seg train">Train 75%</div>
+        <div class="split-seg val">Val 10%</div>
+        <div class="split-seg test">Test 15%</div>
+      </div>
+      <div class="split-legend">
+        <span><i class="dot" style="background:var(--sky-800)"></i>Train (2022-04 ~ 2024-12, 약 3년 9개월) — 사계절·다양한 날씨 조건 반복 학습</span>
+        <span><i class="dot" style="background:#4d7aa8"></i>Validation (2025-01 ~ 2025-05) — 모델 선택 및 튜닝, 과적합 점검</span>
+        <span><i class="dot" style="background:var(--sun-500)"></i>Test (2025-06 ~ 2025-12-31, 최근 약 6개월) — 최종 성능 검증, 여러 계절 평가</span>
+      </div>
+    </div>
+
+    <div class="grid grid-3 reveal" style="margin-bottom:48px;">
+      <div class="card model-card">
+        <div class="role">메인 모델</div>
+        <h3>XGBoost</h3>
+        <p>Gradient Boosting 기반. 높은 정확도, 비선형 패턴 학습, Feature Importance 제공.</p>
+        <div class="pros-cons">
+          <div><strong>강점</strong>비선형 패턴 학습</div>
+          <div><strong>한계</strong>튜닝 미흡 시 과적합 가능</div>
+        </div>
+      </div>
+      <div class="card model-card">
+        <div class="role">베이스라인</div>
+        <h3>Random Forest</h3>
+        <p>Bagging 기반. 안정적이며 과적합에 강하고 구축·튜닝이 용이합니다.</p>
+        <div class="pros-cons">
+          <div><strong>강점</strong>안정성, 과적합 강건</div>
+          <div><strong>한계</strong>미세 오차 조정에 약함</div>
+        </div>
+      </div>
+      <div class="card model-card">
+        <div class="role">딥러닝 비교 모델</div>
+        <h3>LSTM</h3>
+        <p>RNN 기반. 시계열 패턴 및 장기 추세 학습에 강점이 있습니다.</p>
+        <div class="pros-cons">
+          <div><strong>강점</strong>시계열/장기 추세</div>
+          <div><strong>한계</strong>전처리 부담, 학습 시간 증가</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head reveal">
+      <h3 style="margin:0 0 6px;font-size:1.15rem;">평가지표</h3>
+    </div>
+    <div class="grid grid-3 reveal">
+      <div class="card"><div class="icon">📏</div><h3>MAE</h3><p>메인 지표. kWh 단위 평균 오차로 설명이 간단합니다.</p></div>
+      <div class="card"><div class="icon">📊</div><h3>RMSE</h3><p>오차 제곱 기반. 급격한 기상 변화로 인한 큰 오차에 민감합니다.</p></div>
+      <div class="card"><div class="icon">🧮</div><h3>R²</h3><p>0~1 스케일의 전반적 적합도. 1에 가까울수록 좋은 적합입니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RISKS ===================== -->
+<section id="risks" class="alt-bg">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Risks &amp; Constraints</span>
+      <h2>리스크 및 제약</h2>
+    </div>
+    <ul class="risk-list reveal">
+      <li>예측 지평이 길어질수록(Day 5~7) 기상 예보 자체의 불확실성 확대로 <span>성능 저하 가능</span></li>
+      <li>단일 발전소(당진) 데이터 기반 — <span>타 지역 일반화 가능성 별도 검증 필요</span></li>
+      <li>데이터 기간 약 3.75년으로 <span>장기 기후 변동(이상기후 등) 학습에는 제한적</span></li>
+      <li>이상/부족 감지는 규칙 기반 후보 탐지 수준이며, <span>정교한 이상 탐지 모델링은 향후 고도화 필요</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== TEAM ===================== -->
+<section id="team">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">Team</span>
+      <h2>Solarix AI 팀</h2>
+      <p>2026 Agentic AI Innovation Challenge 참가팀</p>
+    </div>
+    <div class="team-grid reveal">
+      <div class="card team-card"><div class="avatar">HK</div><h3>Hyunseo Kim</h3><p>Team Member</p></div>
+      <div class="card team-card"><div class="avatar">JC</div><h3>Jiyoon Choi</h3><p>Team Member</p></div>
+      <div class="card team-card"><div class="avatar">YP</div><h3>Ye Jeong Park</h3><p>Team Member</p></div>
+      <div class="card team-card"><div class="avatar">GK</div><h3>Gwangmin Kim</h3><p>Team Member</p></div>
+    </div>
+
+    <div class="section-head reveal" style="margin-top:64px;">
+      <span class="kicker">References</span>
+      <h2>참고문헌</h2>
+    </div>
+    <ul class="ref-list reveal">
+      <li>김우현 외. (2024). 인공지능 알고리즘 기반 미국 Arroyo Grande 시 태양광 발전량 예측 분석. 한국통신학회 학술대회논문집.</li>
+      <li>이영학. (2026). 기상 데이터 상관관계 분석 기반의 가중치 모델을 적용한 태양광 발전량 예측 연구. 한국정보기술학회논문지.</li>
+      <li>이보람 외. (2024). 머신러닝 기반 태양광 에너지 발전량 예측 및 모델별 비교 연구. 전력전자학회 학술대회 논문집.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a href="#top" class="brand"><span class="brand-mark"></span>Solarix AI</a>
+    <div class="foot-meta">
+      2026 Agentic AI Innovation Challenge · PRD v2.0 · 2026-07-13<br>
+      Hyunseo Kim · Jiyoon Choi · Ye Jeong Park · Gwangmin Kim
+    </div>
+  </div>
+</footer>
+
+<script>
+// Mobile nav toggle
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
+if (navToggle) {
+  navToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => navLinks.classList.remove('open'));
+  });
+}
+
+// Scroll-spy for active nav link
+const sections = document.querySelectorAll('section[id]');
+const navAnchors = document.querySelectorAll('.nav-links a');
+
+const spy = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navAnchors.forEach((a) => {
+          a.classList.toggle('active', a.getAttribute('href') === `#${id}`);
+        });
+      }
+    });
+  },
+  { rootMargin: '-45% 0px -50% 0px' }
+);
+sections.forEach((s) => spy.observe(s));
+
+// Reveal-on-scroll
+const revealEls = document.querySelectorAll('.reveal');
+const revealer = new IntersectionObserver(
+  (entries, obs) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        obs.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.12 }
+);
+revealEls.forEach((el) => revealer.observe(el));
+
+// Animated stat counters
+function animateCount(el) {
+  const target = parseFloat(el.dataset.count);
+  const suffix = el.dataset.suffix || '';
+  const isInt = Number.isInteger(target);
+  const duration = 1200;
+  const start = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = target * eased;
+    el.textContent = (isInt ? Math.round(value).toLocaleString() : value.toFixed(2)) + suffix;
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const counters = document.querySelectorAll('[data-count]');
+const counterObserver = new IntersectionObserver(
+  (entries, obs) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        animateCount(entry.target);
+        obs.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.4 }
+);
+counters.forEach((el) => counterObserver.observe(el));
+
+// Animated correlation bars
+const barFills = document.querySelectorAll('.bar-fill');
+const barObserver = new IntersectionObserver(
+  (entries, obs) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        el.style.width = el.dataset.w + '%';
+        obs.unobserve(el);
+      }
+    });
+  },
+  { threshold: 0.3 }
+);
+barFills.forEach((el) => barObserver.observe(el));
+</script>
+</body>
+</html>
