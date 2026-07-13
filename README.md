@@ -14,16 +14,18 @@ npx serve .
 
 ## Render 배포 방법
 
-### 방법 A — Blueprint(render.yaml) 사용
-1. 이 폴더를 GitHub 저장소로 push 합니다.
-2. [Render 대시보드](https://dashboard.render.com) → **New** → **Blueprint** → 방금 push한 저장소 선택.
-3. 저장소 루트의 `render.yaml`을 자동으로 인식해 Static Site가 생성됩니다.
-4. **Apply** 클릭하면 배포가 시작되고, 완료 후 `https://solarix-ai-landing.onrender.com` 형태의 URL이 발급됩니다.
+이 저장소(`jiyoonchoi-28/solarix-ai`)에 이미 `index.html`, `render.yaml`이 루트에 올라가 있으므로, Render에서 이 저장소를 연결하기만 하면 됩니다.
+
+### 방법 A — Blueprint(render.yaml) 사용 (권장)
+1. [Render 대시보드](https://dashboard.render.com) → **New** → **Blueprint**.
+2. 저장소 목록에서 **jiyoonchoi-28/solarix-ai** 선택 (처음이면 GitHub App 저장소 접근 권한 승인 필요).
+3. 루트의 `render.yaml`을 자동 인식해 `solarix-ai-landing` Static Site 설정이 채워집니다.
+4. **Apply** 클릭 → 배포 완료 후 `https://solarix-ai-landing.onrender.com` 형태의 URL이 발급됩니다.
 
 ### 방법 B — Static Site 수동 생성
 1. Render 대시보드 → **New** → **Static Site**.
-2. GitHub 저장소를 연결합니다 (이 `solarix-ai` 폴더가 루트가 되도록 Root Directory를 지정).
-3. Build Command는 비워두고, Publish Directory는 `.` (현재 폴더)로 설정합니다.
+2. 저장소 **jiyoonchoi-28/solarix-ai** 연결 (Root Directory는 비워두면 됨, 기본값이 저장소 루트).
+3. Build Command는 비워두고, Publish Directory는 `.`로 설정합니다.
 4. **Create Static Site**를 누르면 배포가 진행됩니다.
 
 ## 폴더 구조
